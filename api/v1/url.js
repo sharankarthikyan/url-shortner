@@ -29,6 +29,11 @@ router.post("/", [
     // Original URL
     var original_url = data.original_url;
 
+    // if http protocol ignored, added to it manually.
+    if (!original_url.includes("http")) {
+        original_url = "http://" + original_url;
+    }
+
     // SHA256 the original URL
     const url_sha256 = SHA256(original_url);
 
@@ -42,11 +47,6 @@ router.post("/", [
     const get_url = await redisClient.get(shorten_string);
 
     if (get_url === null) {
-
-        if (!original_url.includes("http")) {
-            original_url = "http://" + original_url;
-        }
-
         const create_url = await redisClient.set(shorten_string, original_url,
             {
                 EX: data.ttl ? data.ttl : 60 * 60 * 24 * 7,
