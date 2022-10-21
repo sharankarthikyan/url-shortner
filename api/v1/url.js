@@ -1,12 +1,11 @@
 var express = require('express');
 var router = express.Router();
-const { check } = require('express-validator');
+const { check, validationResult } = require('express-validator');
 var SHA256 = require("crypto-js/sha256");
 var ENCBASE64 = require("crypto-js/enc-base64");
 
 
 var redisClient = require('../../redis-client');
-var validator = require("../v1/validation-layer/error");
 
 router.get("/:hash", async (req, res) => {
     res.send(req.params.hash);
@@ -15,7 +14,11 @@ router.get("/:hash", async (req, res) => {
 router.post("/", [
     check('original_url').isURL(),
 ], async (req, res) => {
-    validator(req, res);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json({ errors: errors.array() });
+    }
 
     // Domain name
     var domain_name = req.get("host");
@@ -35,22 +38,39 @@ router.post("/", [
     // First 7 bytes of the base64 encoded string
     const shorten_string = sha256_encbase64.slice(0, 7);
 
+
+    const get_url = await redisClient.get(shorten_string);
+
+    if (get_url === null) {
+        const create_url = await redisClient.set(shorten_string, original_url,
+            {
+                EX: data.ttl ? data.ttl : 60 * 60 * 24 * 7,
+                NX: true
+            });
+    }
+
+    const [setKeyReply, otherKeyValue] = await redisClient.multi().ttl(shorten_string).get(shorten_string).exec();
+
+    const expiresAt = (Date.parse(new Date) / 1000 + setKeyReply) * 1000;
+
+    const parsed = new Date(expiresAt).toString();
+
+    console.log(setKeyReply, typeof parsed);
+
     const aliases = [{
         alias: shorten_string,
-        created_at: new Date(),
+        expires_at: parsed,
         domain: domain_name,
-        expires_at: null,
         read_only: true,
         "shorten_url": `${domain_name}/${shorten_string}`
-    }]
+    }];
+
     const resData = {
         "original_url": original_url,
         "aliases": aliases,
     };
 
     res.status(201).send(resData);
-
-    // const d = await redisClient.set("dasda", "asdasdas");
 })
 
 module.exports = router;
