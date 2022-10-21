@@ -42,6 +42,11 @@ router.post("/", [
     const get_url = await redisClient.get(shorten_string);
 
     if (get_url === null) {
+
+        if (!original_url.includes("http")) {
+            original_url = "http://" + original_url;
+        }
+
         const create_url = await redisClient.set(shorten_string, original_url,
             {
                 EX: data.ttl ? data.ttl : 60 * 60 * 24 * 7,
