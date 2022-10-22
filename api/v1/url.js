@@ -64,6 +64,7 @@ router.post("/", [
 
     const aliases = [{
         alias: shorten_string,
+        // created_at:
         expires_at: parsed,
         domain: domain_name,
         read_only: true,

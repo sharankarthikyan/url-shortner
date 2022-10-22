@@ -3,6 +3,10 @@ var router = express.Router();
 
 var redisClient = require('../../redis-client');
 
+router.get("/", async (req, res) => {
+    res.send({ "msg": "hello world" });
+});
+
 router.get("/:hash", async (req, res) => {
 
     const get_url = await redisClient.get(req.params.hash);
