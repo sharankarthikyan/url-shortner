@@ -11,7 +11,7 @@ router.get("/:hash", async (req, res) => {
 
     const get_url = await redisClient.get(req.params.hash);
     if (get_url !== null) {
-        res.status(301).redirect(get_url);
+        res.status(302).redirect(get_url);
     } else {
         const errors = [
             {
