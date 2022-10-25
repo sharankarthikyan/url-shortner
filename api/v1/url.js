@@ -2,7 +2,8 @@ var express = require("express");
 var router = express.Router();
 const { check, validationResult } = require("express-validator");
 var SHA256 = require("crypto-js/sha256");
-var ENCBASE64 = require("crypto-js/enc-base64");
+var converter = require("hex2dec");
+var base62 = require("base62/lib/ascii");
 
 var redisClient = require("../../redis-client");
 
@@ -31,13 +32,18 @@ router.post("/", [check("original_url").isURL()], async (req, res) => {
     }
 
     // SHA256 the original URL
-    const url_sha256 = SHA256(original_url);
+    const url_sha256 = SHA256(original_url).toString();
 
-    // ENCBASE64 the SHA256 string
-    const sha256_encbase64 = ENCBASE64.stringify(url_sha256);
+    // Converting hex to string
+    const decimal = converter.hexToDec(url_sha256);
+
+    // ENCODE BASE62
+    const encbase62 = base62.encode(decimal);
+
+    console.log(encbase62);
 
     // First 7 bytes of the base64 encoded string
-    const shorten_string = sha256_encbase64.slice(0, 7);
+    const shorten_string = encbase62.slice(0, 7);
 
     const get_url = await redisClient.get(shorten_string);
 
