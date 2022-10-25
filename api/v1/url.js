@@ -40,8 +40,6 @@ router.post("/", [check("original_url").isURL()], async (req, res) => {
     // ENCODE BASE62
     const encbase62 = base62.encode(decimal);
 
-    console.log(encbase62);
-
     // First 7 bytes of the base64 encoded string
     const shorten_string = encbase62.slice(0, 7);
 
