@@ -1,9 +1,9 @@
-const express = require('express');
-const logger = require('morgan');
+const express = require("express");
+var cors = require("cors");
+const logger = require("morgan");
 require("./redis-client");
 
-
-const defaultPath = './api/v1';
+const defaultPath = "./api/v1";
 
 /* ------ Importing router from API folder ------ */
 // App Business logic core APIs
@@ -15,17 +15,27 @@ const urlRouter = require(`${defaultPath}/url`);
 const app = express();
 
 /* ------ Including middleware to our Express app ------ */
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+/* ------ CORS ALLOWING ------ */
+app.use(
+    cors({
+        origin: "*",
+    })
+);
+
+// const cors = require('cors');
+// app.use(cors({
+//     origin: ['https://www.section.io', 'https://www.google.com/']
+// }));
+
 /* ------ Buisness Logic ------ */
 // App Business logic core APIs
-app.use('/', urlGet);
+app.use("/", urlGet);
 
-app.use('/api/v1/url', urlRouter);
+app.use("/api/v1/url", urlRouter);
 
-
-
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT);
