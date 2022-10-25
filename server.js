@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: false }));
 /* ------ CORS ALLOWING ------ */
 app.use(
     cors({
-        origin: "*",
+        origin: "https://free-shortify-url.herokuapp.com/",
     })
 );
 
